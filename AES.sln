@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AES", "AES\AES.csproj", "{F4D22E3C-4F0C-4FEE-A52B-5A8DE6E7A2A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AESTests", "AESTests\AESTests.csproj", "{7E17363C-EEF9-4007-8872-EC649AE82FCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F4D22E3C-4F0C-4FEE-A52B-5A8DE6E7A2A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4D22E3C-4F0C-4FEE-A52B-5A8DE6E7A2A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4D22E3C-4F0C-4FEE-A52B-5A8DE6E7A2A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4D22E3C-4F0C-4FEE-A52B-5A8DE6E7A2A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E17363C-EEF9-4007-8872-EC649AE82FCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E17363C-EEF9-4007-8872-EC649AE82FCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E17363C-EEF9-4007-8872-EC649AE82FCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E17363C-EEF9-4007-8872-EC649AE82FCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {37227314-1F8C-4255-B47B-3F9F86E0FFA0}
+	EndGlobalSection
+EndGlobal
