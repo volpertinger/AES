@@ -7,11 +7,18 @@
         /// </summary>
         public static readonly int byteLength = 8;
 
+        /// <summary>
+        /// int length in bits
+        /// </summary>
+        public static readonly int intMaxLength = 32;
+
         public static readonly AESParameters aes128 = new(128, 10);
 
         public static readonly AESParameters aes192 = new(192, 12);
 
         public static readonly AESParameters aes256 = new(256, 14);
+
+        public static readonly uint modGF256 = 283; // x^8 + x^4 + x^3 + x + 1
     }
 
     /// <summary>
