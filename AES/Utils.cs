@@ -27,23 +27,27 @@
             return result;
         }
 
-        public static byte DevideGF256(uint number, uint devider, out byte reminder)
+        /// <summary>
+        /// Devide uint numbers in GF256 polynim modulo
+        /// </summary>
+        public static byte DevideGF256(uint number, uint divider, out byte reminder)
         {
-            byte result = 0;
-            reminder = (byte)number;
-            while (number >= devider)
+            var higherBit = GetHigherBitIndex(number);
+            var higherBitDivider = GetHigherBitIndex(divider);
+            var result = 0;
+            reminder = 0;
+            while (higherBit >= higherBitDivider && higherBit > 0)
             {
-                var higherIndex = GetHigherBitIndex(number);
-                var devideIndex = higherIndex - Constants.byteLength + 1;
-                if (devideIndex < 0)
-                    devideIndex = 0;
-                var leftPart = (byte)GetLeftPart(number, devideIndex) ^ devider;
-                var rightPart = GetRightPart(number, devideIndex);
-                result = (byte)leftPart;
-                reminder = (byte)rightPart;
+                var leftPart = GetLeftPart(number, higherBit - higherBitDivider) ^ divider;
+                var rightPart = GetRightPart(number, higherBit - higherBitDivider - 1);
+                var delta = higherBitDivider - GetHigherBitIndex(leftPart);
+                reminder = (byte)leftPart;
+                result <<= delta;
                 number = leftPart | rightPart;
+                ++result;
+                higherBit = GetHigherBitIndex(number);
             }
-            return result;
+            return (byte)result;
         }
 
         //-------------------------------------------------------------------------------------------------------------
@@ -51,11 +55,21 @@
         //-------------------------------------------------------------------------------------------------------------
 
         /// <summary>
+        /// Returns maximum number (that is a power of 2) that an input number is divisible by
+        /// </summary>
+        public static uint MaxNumberPower2(uint number)
+        {
+            if (number == 0)
+                return Constants.intMaxLength;
+            return number & ~(number - 1);
+        }
+
+        /// <summary>
         /// Get position of highest "1"
         /// </summary>
-        public static int GetHigherBitIndex(uint number)
+        public static byte GetHigherBitIndex(uint number)
         {
-            for (int i = Constants.intMaxLength - 1; i >= 0; --i)
+            for (var i = (byte)(Constants.intMaxLength - 1); i > 0; --i)
             {
                 if ((number & (1 << i)) > 0)
                     return i;
@@ -68,16 +82,26 @@
         /// </summary>
         public static uint GetLeftPart(uint number, int index)
         {
+            if (index < 0)
+                index = 0;
+            if (index >= Constants.intMaxLength)
+                return 0;
             return number >> index;
         }
 
+        // TODO: маска после сдвигов
         /// <summary>
         /// Get int part of number: [index; 0]
         /// </summary>
         public static uint GetRightPart(uint number, int index)
         {
-            var shift = Constants.intMaxLength - index;
-            return (number << shift) >> shift;
+            if (index < 0)
+                index = 0; ;
+            int shift = Constants.intMaxLength - index - 1;
+            if (shift < 0)
+                shift = 0;
+            number <<= shift;
+            return number >> shift;
         }
 
         /// <summary>
@@ -110,9 +134,9 @@
         /// <summary>
         /// Get bit value by index from number
         /// </summary>
-        public static byte GetBitByIndex(byte number, byte index)
+        public static uint GetBitByIndex(uint number, byte index)
         {
-            return (byte)(number & GetMaskForIndex(index));
+            return number & GetMaskForIndex(index);
         }
     }
 }

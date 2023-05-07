@@ -10,7 +10,7 @@
         /// <summary>
         /// int length in bits
         /// </summary>
-        public static readonly int intMaxLength = 32;
+        public static readonly byte intMaxLength = 32;
 
         public static readonly AESParameters aes128 = new(128, 10);
 
