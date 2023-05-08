@@ -22,7 +22,7 @@
         private static readonly PolynomialGF256 mod = new PolynomialGF256(283);
 
         // x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x^1 + x^0
-        private static readonly PolynomialGF256 border = new PolynomialGF256((1 << 8) - 1); 
+        private static readonly PolynomialGF256 border = new PolynomialGF256((1 << 8) - 1);
 
         // ------------------------------------------------------------------------------------------------------------
         // Overloads
@@ -44,6 +44,16 @@
                 return "0";
             result.Reverse();
             return string.Join(" + ", result);
+        }
+
+        public uint this[int key]
+        {
+            get
+            {
+                if (key >= uintMaxLength || key < 0)
+                    throw new IndexOutOfRangeException();
+                return (uint)(Coefficients & (1 << key));
+            }
         }
 
         public override bool Equals(object? obj)
@@ -141,7 +151,17 @@
 
         public static PolynomialGF256 operator *(PolynomialGF256 lhs, PolynomialGF256 rhs)
         {
-            throw new Exception();
+            var result = new PolynomialGF256(0);
+            for (var i = 0; i < uintMaxLength; ++i)
+            {
+                for (var j = 0; j < uintMaxLength; ++j)
+                {
+                    result.Coefficients ^= lhs[i] * rhs[j];
+                }
+            }
+            if (result > border)
+                result = ToMod(result);
+            return result;
         }
 
         // ------------------------------------------------------------------------------------------------------------

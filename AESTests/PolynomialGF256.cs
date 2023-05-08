@@ -139,7 +139,7 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000),
                 new Polynomial(0b00000000_00000000_00000000_00000000) %
                 new Polynomial(0b10000000_10000000_10000000_00000001));
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000),
                 new Polynomial(0b00000000_00000000_00000000_00000001) %
                 new Polynomial(0b00000000_00000000_00000000_00000001));
@@ -236,7 +236,7 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01000001),
                 new Polynomial(0b00000000_00000000_10101110_10110110) /
                 new Polynomial(0b00000000_00000000_00000000_01101001));
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00010010),
                 new Polynomial(0b00000000_00000000_11111000_00000000) /
                 new Polynomial(0b00000000_00000000_00000000_11111111));
@@ -251,6 +251,62 @@ namespace AESTests
 
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00110100),
                 new Polynomial(0b00000000_00000000_10101010_10101010) /
+                new Polynomial(0b00000000_00000000_00000000_01010101));
+        }
+
+        [TestMethod]
+        public void GetCoefficient()
+        {
+            Assert.AreEqual(0b00000000_00000000_00000000_00000000u,
+                new Polynomial(0b00000000_00000000_00000000_00000000)[0]);
+
+            Assert.AreEqual(0b00000000_00000000_00000000_00000000u,
+                new Polynomial(0b00000000_00000000_00000000_00000000)[31]);
+
+            Assert.AreEqual(0b00000000_00000000_10000000_00000000u,
+                new Polynomial(0b00000000_00000000_10000000_00000000)[15]);
+
+            Assert.AreEqual(0b00000000_00001000_00000000_00000000u,
+                new Polynomial(0b11000000_11001000_11111111_00000000)[19]);
+
+
+        }
+
+        [TestMethod]
+        public void Multiplication()
+        {
+            // without ToMod
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000),
+                new Polynomial(0b00000000_00000000_00000000_00000000) *
+                new Polynomial(0b00000000_00000000_00000000_00000000));
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000),
+                new Polynomial(0b11111111_11111111_11111111_11111111) *
+                new Polynomial(0b00000000_00000000_00000000_00000000));
+            
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_11111111),
+                new Polynomial(0b00000000_00000000_00000000_11111111) *
+                new Polynomial(0b00000000_00000000_00000000_00000001));
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_0000000_11111110),
+                new Polynomial(0b00000000_00000000_00000000_01111111) *
+                new Polynomial(0b00000000_00000000_00000000_00000010));
+
+            // with ToMod
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_10011010),
+                new Polynomial(0b00000000_00000000_00000000_10000000) *
+                new Polynomial(0b00000000_00000000_00000000_10000000));
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00010011),
+                new Polynomial(0b00000000_00000000_00000000_11111111) *
+                new Polynomial(0b00000000_00000000_00000000_11111111));
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01000110),
+                new Polynomial(0b00000000_00000000_00000000_10000000) *
+                new Polynomial(0b00000000_00000000_00000000_10101010));
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01011001),
+                new Polynomial(0b00000000_00000000_00000000_10101010) *
                 new Polynomial(0b00000000_00000000_00000000_01010101));
         }
     }
