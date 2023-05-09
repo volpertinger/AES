@@ -325,7 +325,7 @@ namespace AESTests
                 out rhsCoefficient));
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), lhsCoefficient);
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), rhsCoefficient);
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
                 new Polynomial(0b00000000_00000000_00000000_10101010),
                 new Polynomial(0b00000000_00000000_00000000_11010101),
@@ -333,7 +333,7 @@ namespace AESTests
                 out rhsCoefficient));
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01101001), lhsCoefficient);
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01010111), rhsCoefficient);
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
                 new Polynomial(0b00000000_00000000_00000000_11010101),
                 new Polynomial(0b00000000_00000000_10000000_10101010),
@@ -349,7 +349,7 @@ namespace AESTests
                 out rhsCoefficient));
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), lhsCoefficient);
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), rhsCoefficient);
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
                 new Polynomial(0b00000000_00000000_00000010_11110000),
                 new Polynomial(0b00000000_00000000_00000111_00001111),
@@ -400,6 +400,35 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_11101000), lhsCoefficient);
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00101010), rhsCoefficient);
 
+        }
+
+        public void TestReverse(uint reverseCoefficients, uint initialCoefficients)
+        {
+            var reverse = new Polynomial(reverseCoefficients);
+            var initial = new Polynomial(initialCoefficients);
+            Assert.AreEqual(reverse, initial.GetReverse());
+            if (reverse != new Polynomial(0))
+                Assert.AreEqual(new Polynomial(1), reverse * initial);
+        }
+
+        [TestMethod]
+        public void Reverse()
+        {
+
+            // GCD != 1
+
+            TestReverse(0b00000000_00000000_00000000_00000000, 0b00000000_00000000_00000000_00000000);
+            TestReverse(0b00000000_00000000_00000000_00000000, 0b00000000_00000000_00000010_00110110);
+            TestReverse(0b00000000_00000000_00000000_00000000, 0b00000000_00000010_00110111_00011011);
+
+            // GCD == 1
+            TestReverse(0b00000000_00000000_00000000_00111001, 0b00000000_00000000_11111111_11111111);
+            TestReverse(0b00000000_00000000_00000000_10101000, 0b00000000_00000000_10101010_10101010);
+            TestReverse(0b00000000_00000000_00000000_10001101, 0b00000000_00000000_11001101_00011000);
+            TestReverse(0b00000000_00000000_00000000_00000001, 0b00000000_00000000_00000000_00000001);
+            TestReverse(0b00000000_00000000_00000000_00011100, 0b00000000_00000000_00000000_11111111);
+            TestReverse(0b00000000_00000000_00000000_00010010, 0b00000000_00000000_00000000_10101010);
+            TestReverse(0b00000000_00000000_00000000_01011011, 0b00000000_00000000_00000000_11110000);
         }
     }
 }

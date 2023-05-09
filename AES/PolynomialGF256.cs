@@ -12,17 +12,18 @@
         // ------------------------------------------------------------------------------------------------------------
         public uint Coefficients { get; private set; }
 
-        private static readonly int byteLength = 8;
+        private static PolynomialGF256 Zero { get => new(0); }
+        private static PolynomialGF256 One { get => new(1); }
 
         private static readonly uint uintMaxLength = 32;
 
         private static readonly uint higherBitMask = 1u << ((int)uintMaxLength - 1);
 
         // x^8 + x^4 + x^3 + x + 1
-        private static readonly PolynomialGF256 mod = new PolynomialGF256(283);
+        private static readonly PolynomialGF256 mod = new(283);
 
         // x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x^1 + x^0
-        private static readonly PolynomialGF256 border = new PolynomialGF256((1 << 8) - 1);
+        private static readonly PolynomialGF256 border = new((1 << 8) - 1);
 
         // ------------------------------------------------------------------------------------------------------------
         // Overloads
@@ -44,6 +45,11 @@
                 return "0";
             result.Reverse();
             return string.Join(" + ", result);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public uint this[int key]
@@ -110,7 +116,7 @@
         {
             if (rhs.IsZero())
                 throw new DivideByZeroException();
-            PolynomialGF256 result = new(0);
+            PolynomialGF256 result = Zero;
             while (lhs.Length() >= rhs.Length())
             {
                 PolynomialGF256 sub = new(rhs);
@@ -151,7 +157,7 @@
 
         public static PolynomialGF256 operator *(PolynomialGF256 lhs, PolynomialGF256 rhs)
         {
-            var result = new PolynomialGF256(0);
+            var result = Zero;
             for (var i = 0; i < uintMaxLength; ++i)
             {
                 for (var j = 0; j < uintMaxLength; ++j)
@@ -167,6 +173,11 @@
         // ------------------------------------------------------------------------------------------------------------
         // Public
         // ------------------------------------------------------------------------------------------------------------
+
+        public PolynomialGF256()
+        {
+            Coefficients = Zero.Coefficients;
+        }
 
         public PolynomialGF256(uint coefficients)
         {
@@ -210,7 +221,7 @@
                 isNeedToReplaceCoefficients = true;
                 (rhs, lhs) = (lhs, rhs);
             }
-            PolynomialGF256 upL = new(0), upR = new(1), downL = new(1), downR = new(0);
+            PolynomialGF256 upL = Zero, upR = One, downL = One, downR = Zero;
             while (!lhs.IsZero())
             {
                 PolynomialGF256 quotient = rhs / lhs;
@@ -237,7 +248,16 @@
             return ToMod(rhs);
         }
 
-
+        /// <summary>
+        /// Get reverse polynomial by modulo deductions. If GCD != 1, returns 0.
+        /// </summary>
+        public PolynomialGF256 GetReverse()
+        {
+            var gcd = ExtendedGCD(this, mod, out PolynomialGF256 leftCoefficient, out _);
+            if (!gcd.IsOne())
+                return Zero;
+            return leftCoefficient;
+        }
 
         // ------------------------------------------------------------------------------------------------------------
         // Private
@@ -250,7 +270,12 @@
 
         private bool IsZero()
         {
-            return Coefficients == 0;
+            return this == Zero;
+        }
+
+        private bool IsOne()
+        {
+            return this == One;
         }
     }
 }
