@@ -193,6 +193,50 @@
             return 0;
         }
 
+        /// <summary>
+        /// Extended Euclidean algorithm for GF256 polynomial
+        /// </summary>
+        /// <param name="lhs">First polynomial</param>
+        /// <param name="rhs">Second polynomial</param>
+        /// <param name="lhsCoefficient">First bezout ratio</param>
+        /// <param name="rhsCoefficient">Second bezout ratio</param>
+        /// <returns>GCD of lhs and rhs</returns>
+        public static PolynomialGF256 ExtendedGCD(PolynomialGF256 lhs, PolynomialGF256 rhs,
+            out PolynomialGF256 lhsCoefficient, out PolynomialGF256 rhsCoefficient)
+        {
+            var isNeedToReplaceCoefficients = false;
+            if (lhs > rhs)
+            {
+                isNeedToReplaceCoefficients = true;
+                (rhs, lhs) = (lhs, rhs);
+            }
+            PolynomialGF256 upL = new(0), upR = new(1), downL = new(1), downR = new(0);
+            while (!lhs.IsZero())
+            {
+                PolynomialGF256 quotient = rhs / lhs;
+                PolynomialGF256 remainder = rhs % lhs;
+                PolynomialGF256 newDownL = ToMod(upL + downL * quotient);
+                PolynomialGF256 newDownR = ToMod(upR + downR * quotient);
+                rhs = lhs;
+                lhs = remainder;
+                upL = downL;
+                upR = downR;
+                downL = newDownL;
+                downR = newDownR;
+            }
+            if (!isNeedToReplaceCoefficients)
+            {
+                lhsCoefficient = ToMod(upL);
+                rhsCoefficient = ToMod(upR);
+            }
+            else
+            {
+                lhsCoefficient = ToMod(upR);
+                rhsCoefficient = ToMod(upL);
+            }
+            return ToMod(rhs);
+        }
+
 
 
         // ------------------------------------------------------------------------------------------------------------

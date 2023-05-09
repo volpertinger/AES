@@ -283,7 +283,7 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000),
                 new Polynomial(0b11111111_11111111_11111111_11111111) *
                 new Polynomial(0b00000000_00000000_00000000_00000000));
-            
+
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_11111111),
                 new Polynomial(0b00000000_00000000_00000000_11111111) *
                 new Polynomial(0b00000000_00000000_00000000_00000001));
@@ -308,6 +308,98 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01011001),
                 new Polynomial(0b00000000_00000000_00000000_10101010) *
                 new Polynomial(0b00000000_00000000_00000000_01010101));
+        }
+
+        [TestMethod]
+        public void ExtendedGCD()
+        {
+            Polynomial lhsCoefficient = new(0);
+            Polynomial rhsCoefficient = new(0);
+
+            // without replace
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000011), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_00000011),
+                new Polynomial(0b00000000_00000000_00000000_10000001),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), rhsCoefficient);
+            
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_10101010),
+                new Polynomial(0b00000000_00000000_00000000_11010101),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01101001), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01010111), rhsCoefficient);
+            
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_11010101),
+                new Polynomial(0b00000000_00000000_10000000_10101010),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_10100001), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00010000), rhsCoefficient);
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00001111), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_00001111),
+                new Polynomial(0b00000000_00000000_00000000_11110000),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), rhsCoefficient);
+            
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000010_11110000),
+                new Polynomial(0b00000000_00000000_00000111_00001111),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00101010), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_11101000), rhsCoefficient);
+
+            // with replace
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000011), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_10000001),
+                new Polynomial(0b00000000_00000000_00000000_00000011),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), rhsCoefficient);
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_11010101),
+                new Polynomial(0b00000000_00000000_00000000_10101010),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01010111), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01101001), rhsCoefficient);
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_10000000_10101010),
+                new Polynomial(0b00000000_00000000_00000000_11010101),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00010000), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_10100001), rhsCoefficient);
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00001111), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000000_11110000),
+                new Polynomial(0b00000000_00000000_00000000_00001111),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000000), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), rhsCoefficient);
+
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00000001), Polynomial.ExtendedGCD(
+                new Polynomial(0b00000000_00000000_00000111_00001111),
+                new Polynomial(0b00000000_00000000_00000010_11110000),
+                out lhsCoefficient,
+                out rhsCoefficient));
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_11101000), lhsCoefficient);
+            Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00101010), rhsCoefficient);
+
         }
     }
 }
