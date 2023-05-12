@@ -18,6 +18,12 @@
 
         private static readonly int halfByteLength = 4;
 
+        // x^4 + x^3 + x^2 +x + 1. As in documentation
+        private static readonly PolynomialGF256 affineMultiplier = new(0b00011111);
+
+        // x^6 + x^5 +x + 1. As in documentation
+        private static readonly PolynomialGF256 affineAddendum = new(0b01100011);
+
         // ------------------------------------------------------------------------------------------------------------
         // Public
         // ------------------------------------------------------------------------------------------------------------
@@ -42,7 +48,7 @@
                 for (int j = 0; j < sBoxLength; ++j)
                 {
                     var index = random.Next(initial.Count);
-                    result[i, j] = initial[index];
+                    result[i, j] = AffineTransformation(initial[index]);
                     initial.RemoveAt(index);
                 }
             }
@@ -57,11 +63,12 @@
                 for (int j = 0; j < sBoxLength; ++j)
                 {
                     var forwardByte = forwardSBox[i, j];
-                    result[GetLeftBytePart(forwardByte), GetRightBytePart(forwardByte)] = bytePaste(i, j);
+                    result[GetLeftBytePart(forwardByte), GetRightBytePart(forwardByte)] = BytePaste(i, j);
                 }
             }
             return result;
         }
+
 
         // ------------------------------------------------------------------------------------------------------------
         // Private
@@ -77,9 +84,15 @@
             return (byte)(arg & rightByteMask);
         }
 
-        private static byte bytePaste(int left, int right)
+        private static byte BytePaste(int left, int right)
         {
             return (byte)((left << halfByteLength) | right);
+        }
+
+        private static byte AffineTransformation(byte arg)
+        {
+            PolynomialGF256 polynomial = new(arg);
+            return (byte)(polynomial.GetReverse() * affineMultiplier + affineAddendum).Coefficients;
         }
     }
 }
