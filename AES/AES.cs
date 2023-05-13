@@ -209,6 +209,32 @@
                 return result;
             }
 
+            public PolynomialGF256[,] ToPolynomial()
+            {
+                var result = new PolynomialGF256[rowColLength, rowColLength];
+                for (int i = 0; i < rowColLength; ++i)
+                {
+                    for (int j = 0; j < rowColLength; ++j)
+                    {
+                        result[i, j] = new PolynomialGF256(Block[i, j]);
+                    }
+                }
+                return result;
+            }
+
+            public static State FromPolynomial(PolynomialGF256[,] arg)
+            {
+                var result = new State();
+                for (int i = 0; i < rowColLength; ++i)
+                {
+                    for (int j = 0; j < rowColLength; ++j)
+                    {
+                        result[i, j] = (byte)arg[i, j].Coefficients;
+                    }
+                }
+                return result;
+            }
+
             // --------------------------------------------------------------------------------------------------------
             // Private
             // --------------------------------------------------------------------------------------------------------
@@ -227,21 +253,35 @@
         /// </summary>
         public static readonly int blockLength = 16;
 
+        
         /// <summary>
-        /// x^4 + 1 - mod for MixColumns as in documentation
+        /// Matrix for forward mix columns as in documentation
+        /// |x  |x+1|1  |1  |
+        /// |1  |x  |x+1| 1 |
+        /// |1  |1  |x  |x+1|
+        /// |x+1|1  |1  |x  |
         /// </summary>
-        private static readonly PolynomialGF256 mixColumnsMod = new(0b00010001);
+        private static readonly PolynomialGF256[,] forwardMixColumnsMatrix = new PolynomialGF256[,] {
+            { new(2), new(3), new(1), new(1)},
+            { new(1), new(2), new(3), new(1)},
+            { new(1), new(1), new(2), new(3)},
+            { new(3), new(1), new(1), new(2)}
+        };
 
         /// <summary>
-        /// x^3 + x^2 + x - multiplier for forward MixColumns as in documentation
+        /// Matrix for inverse mix columns as in documentation
+        /// |x^3 + x^2 + x^1|x^3 + x + 1    |x^3 + x^2 + 1  |x^3 + 1        |
+        /// |x^3 + 1        |x^3 + x^2 + x^1|x^3 + x + 1    |x^3 + x^2 + 1  |
+        /// |x^3 + x^2 + 1  |x^3 + 1        |x^3 + x^2 + x^1|x^3 + x + 1    |
+        /// |x^3 + x + 1    |x^3 + x^2 + 1  |x^3 + 1        |x^3 + x^2 + x^1|
         /// </summary>
-        private static readonly PolynomialGF256 forwardMixColumnsMultiplier = new PolynomialGF256(0b00001110).GetReverse();
-
-        /// <summary>
-        /// (x^3 + x^2 + x)^(-1) - multiplier for inverse MixColumns as in documentation
-        /// </summary>
-        private static readonly PolynomialGF256 inverseMixColumnsMultiplier = new PolynomialGF256(0b00010001).GetReverse();
-
+        private static readonly PolynomialGF256[,] inverseMixColumnsMatrix = new PolynomialGF256[,] {
+            { new(14), new(11), new(13), new(9)},
+            { new(9), new(14), new(11), new(13)},
+            { new(13), new(9), new(14), new(11)},
+            { new(11), new(13), new(9), new(14)},
+        };
+        
         /// <summary>
         /// mask for get last bit with &
         /// </summary>
@@ -323,27 +363,25 @@
 
         private static State MixColumns(State block, bool forward)
         {
+            var mixMatrix = forwardMixColumnsMatrix;
+            if (!forward)
+                mixMatrix = inverseMixColumnsMatrix;
+            var result = new PolynomialGF256[State.rowColLength, State.rowColLength];
+            var polynomialBlock = block.ToPolynomial();
+
             for (int i = 0; i < State.rowColLength; ++i)
             {
-                uint column = 0;
                 for (int j = 0; j < State.rowColLength; ++j)
                 {
-                    column += ((uint)block[j, i] % 2) << j;
-                }
-                var polynomial = new PolynomialGF256(column);
-                if (forward)
-                    polynomial *= forwardMixColumnsMultiplier;
-                else
-                    polynomial *= inverseMixColumnsMultiplier;
-                polynomial %= mixColumnsMod;
-                column = polynomial.Coefficients;
-                for (int j = 0; j < State.rowColLength; ++j)
-                {
-                    block[j, i] = (byte)(column & lastBitMask);
-                    column >>= 1;
+                    var accumulator = new PolynomialGF256();
+                    for (int k = 0; k < State.rowColLength; ++k)
+                    {
+                        accumulator += mixMatrix[i, k] * polynomialBlock[k, j];
+                    }
+                    result[i, j] = accumulator;
                 }
             }
-            return block;
+            return State.FromPolynomial(result);
         }
     }
 }

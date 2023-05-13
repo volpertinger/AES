@@ -184,5 +184,33 @@ namespace AESTests
             TestShiftRows(new byte[] { 255, 127, 63, 31, 15, 7, 3, 1, 1, 3, 7, 15, 31, 63, 127, 255 });
             TestShiftRows(new byte[] { 10, 0, 98, 111, 209, 74, 55, 32, 255, 43, 12, 84, 163, 201, 192, 15 });
         }
+
+        public void TestMixColumns(byte[] arg)
+        {
+            AESS initial = new(arg);
+            AESS forward = AESA.ForwardMixColumns(new(initial));
+            AESS inverse = AESA.InverseMixColumns(new(forward));
+
+            for (int i = 0; i < blockRowColLength; ++i)
+            {
+                for (int j = 0; j < blockRowColLength; ++j)
+                {
+                    Assert.AreEqual(initial[i, j], inverse[i, j]);
+                    if (initial[i, j] != 0)
+                        Assert.AreNotEqual(forward[i, j], inverse[i, j]);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void MixColumns()
+        {
+            TestMixColumns(new byte[] { });
+            TestMixColumns(new byte[] { 0 });
+            TestMixColumns(new byte[] { 1 });
+            TestMixColumns(new byte[] { 255 });
+            TestMixColumns(new byte[] { 1, 255 });
+            TestMixColumns(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
+        }
     }
 }
