@@ -24,11 +24,6 @@
         /// </summary>
         public int RoundsAmount { get; private init; }
 
-        /// <summary>
-        /// block lenght similar for every AES
-        /// </summary>
-        public static int BlockLength { get; }
-
         public AESParameters(int keyBits, int roundsAmount)
         {
             KeyBits = keyBits;
