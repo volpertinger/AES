@@ -191,6 +191,11 @@
                 }
             }
 
+            public State()
+            {
+                Block = new State(new byte[] { }).Block;
+            }
+
             public byte[] ToPlainBytes()
             {
                 var result = new byte[blockLength];
@@ -222,6 +227,26 @@
         /// </summary>
         public static readonly int blockLength = 16;
 
+        /// <summary>
+        /// x^4 + 1 - mod for MixColumns as in documentation
+        /// </summary>
+        private static readonly PolynomialGF256 mixColumnsMod = new(0b00010001);
+
+        /// <summary>
+        /// x^3 + x^2 + x - multiplier for forward MixColumns as in documentation
+        /// </summary>
+        private static readonly PolynomialGF256 forwardMixColumnsMultiplier = new PolynomialGF256(0b00001110).GetReverse();
+
+        /// <summary>
+        /// (x^3 + x^2 + x)^(-1) - multiplier for inverse MixColumns as in documentation
+        /// </summary>
+        private static readonly PolynomialGF256 inverseMixColumnsMultiplier = new PolynomialGF256(0b00010001).GetReverse();
+
+        /// <summary>
+        /// mask for get last bit with &
+        /// </summary>
+        private static readonly uint lastBitMask = 1;
+
 
         // ------------------------------------------------------------------------------------------------------------
         // Public
@@ -244,6 +269,26 @@
             return BytesSubstitution(block, InverseSBox);
         }
 
+        public static State ForwardShiftRows(State block)
+        {
+            return ShiftRows(block, false);
+        }
+
+        public static State InverseShiftRows(State block)
+        {
+            return ShiftRows(block, true);
+        }
+
+        public static State ForwardMixColumns(State block)
+        {
+            return MixColumns(block, true);
+        }
+
+        public static State InverseMixColumns(State block)
+        {
+            return MixColumns(block, false);
+        }
+
         // ------------------------------------------------------------------------------------------------------------
         // Private
         // ------------------------------------------------------------------------------------------------------------
@@ -255,6 +300,47 @@
                 for (int j = 0; j < State.rowColLength; ++j)
                 {
                     block[i, j] = box[block[i, j]];
+                }
+            }
+            return block;
+        }
+
+        private static State ShiftRows(State block, bool shiftRight)
+        {
+            State result = new();
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    if (shiftRight)
+                        result[i, j] = block[i, (j - i + State.rowColLength) % State.rowColLength];
+                    else
+                        result[i, j] = block[i, (j + i) % State.rowColLength];
+                }
+            }
+            return result;
+        }
+
+        private static State MixColumns(State block, bool forward)
+        {
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                uint column = 0;
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    column += ((uint)block[j, i] % 2) << j;
+                }
+                var polynomial = new PolynomialGF256(column);
+                if (forward)
+                    polynomial *= forwardMixColumnsMultiplier;
+                else
+                    polynomial *= inverseMixColumnsMultiplier;
+                polynomial %= mixColumnsMod;
+                column = polynomial.Coefficients;
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    block[j, i] = (byte)(column & lastBitMask);
+                    column >>= 1;
                 }
             }
             return block;
