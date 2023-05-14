@@ -7,28 +7,14 @@
         public static readonly AESParameters aes192 = new(192, 12);
 
         public static readonly AESParameters aes256 = new(256, 14);
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AESParameters
-    {
-        /// <summary>
-        /// key length in bits
-        /// </summary>
-        public int KeyBits { get; private init; }
+        public static readonly BlockChain ecb = new("ECB");
 
-        /// <summary>
-        /// rounds amount
-        /// </summary>
-        public int RoundsAmount { get; private init; }
+        public static readonly BlockChain cbc = new("CBC");
 
-        public AESParameters(int keyBits, int roundsAmount)
-        {
-            KeyBits = keyBits;
-            RoundsAmount = roundsAmount;
-        }
+        public static readonly BlockChain ofb = new BlockChain("OFB");
+
+        public static readonly BlockChain cfb = new BlockChain("CFB");
     }
 
     /// <summary>

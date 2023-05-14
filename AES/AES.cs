@@ -263,6 +263,8 @@
 
         private State[] ExtendedKey { get; set; }
 
+        private BlockChain BlockChain { get; set; }
+
         /// <summary>
         /// Block length = 16 bytes as in documentation
         /// </summary>
@@ -314,12 +316,13 @@
         // Public
         // ------------------------------------------------------------------------------------------------------------
 
-        public AES(int seed, AESParameters parameters, byte[] key)
+        public AES(int seed, AESParameters parameters, byte[] key, BlockChain blockChain)
         {
             ForwardSBox = new SubstitutionBox(seed);
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
             ExtendedKey = KeyExtension(parameters, key);
+            BlockChain = blockChain;
         }
 
         public State ForwardBytesSubstitution(State block)
@@ -387,9 +390,35 @@
             return state.ToPlainBytes();
         }
 
+        public bool Encrypt(FileStream ifs, FileStream ofs)
+        {
+            return CryptProcessing(ifs, ofs, true);
+        }
+
+        public bool Decrypt(FileStream ifs, FileStream ofs)
+        {
+            return CryptProcessing(ifs, ofs, false);
+        }
+
         // ------------------------------------------------------------------------------------------------------------
         // Private
         // ------------------------------------------------------------------------------------------------------------
+
+        private bool CryptProcessing(FileStream ifs, FileStream ofs, bool encrypt)
+        {
+            var buffer = new byte[blockLength];
+            int length;
+            while ((length = ifs.Read(buffer, 0, blockLength)) > 0)
+            {
+                if (encrypt)
+                    buffer = EncryptBlock(buffer);
+                else
+                    buffer = DecryptBlock(buffer);
+                ofs.Write(buffer, 0, blockLength);
+                buffer = new byte[blockLength];
+            }
+            return true;
+        }
 
         private State BytesSubstitution(State block, SubstitutionBox box)
         {
@@ -531,6 +560,36 @@
         private static uint RotateWord(uint arg)
         {
             return (arg << byteLength) | (arg >> (uintLength - byteLength));
+        }
+    }
+
+    /// <summary>
+    /// Parameters for AES crypt processing
+    /// </summary>
+    public class AESParameters
+    {
+        /// <summary>
+        /// key length in bits
+        /// </summary>
+        public int KeyBits { get; private init; }
+
+        /// <summary>
+        /// rounds amount
+        /// </summary>
+        public int RoundsAmount { get; private init; }
+
+        public AESParameters(int keyBits, int roundsAmount)
+        {
+            KeyBits = keyBits;
+            RoundsAmount = roundsAmount;
+        }
+    }
+
+    public class BlockChain
+    {
+        public BlockChain(string mod)
+        {
+
         }
     }
 }

@@ -11,4 +11,9 @@
     <PackageReference Include="NLog" Version="5.1.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Examples\Decrypted\" />
+    <Folder Include="Examples\Encrypted\" />
+  </ItemGroup>
+
 </Project>
