@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using static AES.AES;
 
 class Program
 {
@@ -70,12 +71,12 @@ class Program
         byte[] key = Encoding.UTF8.GetBytes(settings.Key);
 
         logger.Info("Get block chain mod");
-        BlockChain chainMod = settings.BlockChainMode switch
+        string chainMod = settings.BlockChainMode switch
         {
-            BlockChainModes.ECB => Constants.ecb,
-            BlockChainModes.CBC => Constants.cbc,
-            BlockChainModes.OFB => Constants.ofb,
-            BlockChainModes.CFB => Constants.cfb,
+            BlockChainModes.ECB => BlockChainModes.ECB,
+            BlockChainModes.CBC => BlockChainModes.CBC,
+            BlockChainModes.OFB => BlockChainModes.OFB,
+            BlockChainModes.CFB => BlockChainModes.CFB,
             _ => throw new ArgumentException(string.Format("Unsupported block chain mode {0}", settings.BlockChainMode)),
         };
 

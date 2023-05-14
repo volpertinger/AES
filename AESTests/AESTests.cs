@@ -1,5 +1,4 @@
-﻿using AES;
-using AESA = AES.AES;
+﻿using AESA = AES.AES;
 using AESP = AES.AESParameters;
 using AESS = AES.AES.State;
 using AESSB = AES.AES.SubstitutionBox;
@@ -35,7 +34,7 @@ namespace AESTests
 
         private static readonly byte[] initialKey256 = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-        public static readonly BlockChain ecb = new("ECB");
+        public static readonly string chainMode = "ECB";
 
         public static readonly uint batchSize = 1;
 
@@ -159,7 +158,7 @@ namespace AESTests
         [TestMethod]
         public void SubBytes()
         {
-            var aes = new AES.AES(1, aes128, initialKey128, ecb, batchSize);
+            var aes = new AES.AES(1, aes128, initialKey128, chainMode, batchSize);
             TestSubBytes(aes, new byte[] { });
             TestSubBytes(aes, new byte[] { 0 });
             TestSubBytes(aes, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
@@ -238,7 +237,7 @@ namespace AESTests
 
         public bool TestKeyExtension(byte[] key, AESP parameters)
         {
-            var aes = new AES.AES(0, parameters, key, ecb, batchSize);
+            var aes = new AES.AES(0, parameters, key, chainMode, batchSize);
             return true;
         }
 
@@ -285,7 +284,7 @@ namespace AESTests
             var aes = new AESA(100, aes128, new byte[] {
                 1, 200, 19, 176, 106, 8, 231, 203,
                 2, 9, 14, 153, 21, 16, 19, 1 },
-                ecb, batchSize);
+                chainMode, batchSize);
             TestBlockEncryption(new byte[] { }, aes);
             TestBlockEncryption(new byte[] { 0 }, aes);
             TestBlockEncryption(new byte[] { 255 }, aes);
@@ -299,7 +298,7 @@ namespace AESTests
                 91, 182, 191, 68, 10, 46, 152, 222,
                 1, 99, 123, 56, 5, 19, 172, 10,
                 16, 203, 16, 101, 20, 2, 1, 44 },
-                ecb, batchSize);
+                chainMode, batchSize);
             TestBlockEncryption(new byte[] { }, aes);
             TestBlockEncryption(new byte[] { 0 }, aes);
             TestBlockEncryption(new byte[] { 255 }, aes);
@@ -314,7 +313,7 @@ namespace AESTests
                 1, 99, 123, 56, 5, 19, 172, 10,
                 16, 203, 16, 101, 20, 2, 1, 44,
                 12, 45, 66, 142, 231, 9, 53, 44},
-                ecb, batchSize);
+                chainMode, batchSize);
             TestBlockEncryption(new byte[] { }, aes);
             TestBlockEncryption(new byte[] { 0 }, aes);
             TestBlockEncryption(new byte[] { 255 }, aes);

@@ -1,6 +1,6 @@
 ﻿namespace AES
 {
-
+    // TODO: Blocks chain
     public class AES
     {
         // ------------------------------------------------------------------------------------------------------------
@@ -263,7 +263,7 @@
 
         private State[] ExtendedKey { get; set; }
 
-        private BlockChain BlockChain { get; set; }
+        private string BlockChainMethod { get; set; }
 
         private uint BatchSize { get; set; }
 
@@ -318,14 +318,14 @@
         // Public
         // ------------------------------------------------------------------------------------------------------------
 
-        public AES(int seed, AESParameters parameters, byte[] key, BlockChain blockChain, uint batchSize)
+        public AES(int seed, AESParameters parameters, byte[] key, string blockChain, uint batchSize)
         {
             ForwardSBox = new SubstitutionBox(seed);
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
 
             ExtendedKey = KeyExtension(parameters, key);
-            BlockChain = blockChain;
+            BlockChainMethod = blockChain;
             BatchSize = batchSize;
         }
 
@@ -410,6 +410,18 @@
 
         private bool CryptProcessing(FileStream ifs, FileStream ofs, bool encrypt)
         {
+            return BlockChainMethod switch
+            {
+                BlockChainModes.ECB => CryptProcessingECB(ifs, ofs, encrypt),
+                BlockChainModes.CBC => CryptProcessingECB(ifs, ofs, encrypt),
+                BlockChainModes.OFB => CryptProcessingECB(ifs, ofs, encrypt),
+                BlockChainModes.CFB => CryptProcessingECB(ifs, ofs, encrypt),
+                _ => throw new ArgumentException(),
+            };
+        }
+
+        private bool CryptProcessingECB(FileStream ifs, FileStream ofs, bool encrypt)
+        {
             var buffer = new byte[blockLength * BatchSize];
             int length;
             while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
@@ -423,13 +435,15 @@
                     {
                         block[j] = buffer[realBlocksIndex * blockLength + j];
                     }
+
+                    var encrypted = new byte[blockLength];
                     if (encrypt)
-                        block = EncryptBlock(block);
+                        encrypted = EncryptBlock(block);
                     else
-                        block = DecryptBlock(block);
+                        encrypted = DecryptBlock(block);
                     for (int j = 0; j < blockLength; ++j)
                     {
-                        buffer[realBlocksIndex * blockLength + j] = block[j];
+                        buffer[realBlocksIndex * blockLength + j] = encrypted[j];
                     }
                     if ((realBlocksIndex + 1) * blockLength >= length)
                         break;
@@ -602,14 +616,6 @@
         {
             KeyBits = keyBits;
             RoundsAmount = roundsAmount;
-        }
-    }
-
-    public class BlockChain
-    {
-        public BlockChain(string mod)
-        {
-
         }
     }
 }
