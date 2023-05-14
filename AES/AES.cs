@@ -235,6 +235,19 @@
                 return result;
             }
 
+            public static State operator +(State lhs, State rhs)
+            {
+                var result = new State();
+                for (int i = 0; i < rowColLength; ++i)
+                {
+                    for (int j = 0; j < rowColLength; ++j)
+                    {
+                        result[i, j] = (byte)(lhs[i, j] + rhs[i, j]);
+                    }
+                }
+                return result;
+            }
+
             // --------------------------------------------------------------------------------------------------------
             // Private
             // --------------------------------------------------------------------------------------------------------
@@ -248,12 +261,26 @@
 
         private SubstitutionBox InverseSBox { get; set; }
 
+        private State[] ExtendedKey { get; set; }
+
         /// <summary>
         /// Block length = 16 bytes as in documentation
         /// </summary>
         public static readonly int blockLength = 16;
 
-        
+        /// <summary>
+        /// Byte length in bits
+        /// </summary>
+        public static readonly int byteLength = 8;
+
+        /// <summary>
+        /// Uint length in bits
+        /// </summary>
+        public static readonly int uintLength = 32;
+
+        public static readonly uint byteMask = 0b00000000_00000000_00000000_11111111;
+
+
         /// <summary>
         /// Matrix for forward mix columns as in documentation
         /// |x  |x+1|1  |1  |
@@ -281,22 +308,18 @@
             { new(13), new(9), new(14), new(11)},
             { new(11), new(13), new(9), new(14)},
         };
-        
-        /// <summary>
-        /// mask for get last bit with &
-        /// </summary>
-        private static readonly uint lastBitMask = 1;
 
 
         // ------------------------------------------------------------------------------------------------------------
         // Public
         // ------------------------------------------------------------------------------------------------------------
 
-        public AES(int seed)
+        public AES(int seed, AESParameters parameters, byte[] key)
         {
             ForwardSBox = new SubstitutionBox(seed);
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
+            ExtendedKey = KeyExtension(parameters, key);
         }
 
         public State ForwardBytesSubstitution(State block)
@@ -382,6 +405,97 @@
                 }
             }
             return State.FromPolynomial(result);
+        }
+
+        private State[] KeyExtension(AESParameters parameters, byte[] key)
+        {
+            if (key.Length * byteLength != parameters.KeyBits)
+                throw new ArgumentException();
+
+            var groups = new uint[(parameters.RoundsAmount + 1) * State.rowColLength];
+            var groupLength = parameters.KeyBits / (byteLength * State.rowColLength);
+
+            // initial group filling
+            for (int i = 0; i < groupLength; ++i)
+            {
+                var group = new byte[State.rowColLength];
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    group[j] = key[i * State.rowColLength + j];
+                }
+                groups[i] = BytesToUint(group);
+            }
+
+            for (int i = 1; i <= (groups.Length - 1) / groupLength; ++i)
+            {
+                groups[i * groupLength] = groups[(i - 1) * groupLength] ^ KeyExtensionFirstGroupProcessing(groups[i * groupLength - 1], i);
+                for (int j = 1; j < groupLength; ++j)
+                {
+                    // overflow check when filling incomplete blocks
+                    if (i * groupLength + j < groups.Length)
+                        groups[i * groupLength + j] = groups[i * groupLength + j - 1] ^ groups[(i - 1) * groupLength + j];
+                }
+            }
+
+            var result = new State[parameters.RoundsAmount + 1];
+            for (int i = 0; i <= parameters.RoundsAmount; ++i)
+            {
+                var stateBytes = new byte[blockLength];
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    var group = UintToBytes(groups[i * State.rowColLength + j]);
+                    for (int k = 0; k < State.rowColLength; ++k)
+                    {
+                        stateBytes[j * State.rowColLength + k] = group[k];
+                    }
+                }
+                result[i] = new State(stateBytes);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// First word in each round key changes according to the documentation
+        /// </summary>
+        private uint KeyExtensionFirstGroupProcessing(uint arg, int round)
+        {
+            var block = UintToBytes(RotateWord(arg));
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                block[i] = ForwardSBox[block[i]];
+            }
+            block[0] = (byte)(block[0] ^ (1 << round));
+            return BytesToUint(block);
+        }
+
+        private static byte[] UintToBytes(uint arg)
+        {
+            var result = new byte[State.rowColLength];
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                result[i] = (byte)(arg & byteMask);
+                arg >>= byteLength;
+            }
+            return result;
+        }
+
+        private static uint BytesToUint(byte[] arg)
+        {
+            if (arg.Length != State.rowColLength)
+                throw new ArgumentException();
+            uint result = 0;
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                result <<= byteLength;
+                result += arg[i];
+            }
+            return result;
+        }
+
+        private static uint RotateWord(uint arg)
+        {
+            return (arg << byteLength) | (arg >> (uintLength - byteLength));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AESA = AES.AES;
+using AESP = AES.AESParameters;
 using AESS = AES.AES.State;
 using AESSB = AES.AES.SubstitutionBox;
 
@@ -20,6 +21,19 @@ namespace AESTests
         private static readonly int blockLength = 16;
 
         private static readonly int blockRowColLength = 4;
+
+        private static readonly AESP aes128 = new(128, 10);
+
+        private static readonly AESP aes192 = new(192, 12);
+
+        private static readonly AESP aes256 = new(256, 14);
+
+        private static readonly byte[] initialKey128 = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+        private static readonly byte[] initialKey192 = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+        private static readonly byte[] initialKey256 = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 
         public void TestForwardSBox(int seed)
         {
@@ -140,7 +154,7 @@ namespace AESTests
         [TestMethod]
         public void SubBytes()
         {
-            var aes = new AES.AES(1);
+            var aes = new AES.AES(1, aes128, initialKey128);
             TestSubBytes(aes, new byte[] { });
             TestSubBytes(aes, new byte[] { 0 });
             TestSubBytes(aes, new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
@@ -215,6 +229,29 @@ namespace AESTests
             TestMixColumns(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 63, 31, 15, 7, 3, 1 });
             TestMixColumns(new byte[] { 1, 45, 33, 10, 95, 201, 172 });
             TestMixColumns(new byte[] { 10, 43, 61, 109, 222, 204, 4, 129, 32, 157, 211, 20, 3, 45, 143, 32 });
+        }
+
+        public bool TestKeyExtension(byte[] key, AESP parameters)
+        {
+            var aes = new AES.AES(0, parameters, key);
+            return true;
+        }
+
+        [TestMethod]
+        public void KeyGeneration()
+        {
+            Assert.IsTrue(TestKeyExtension(initialKey128, aes128));
+            Assert.IsTrue(TestKeyExtension(new byte[] { 254, 1, 23, 203, 255, 128, 7, 10,
+                104, 36, 98, 41, 13, 127, 21, 7 }, aes128));
+            Assert.IsTrue(TestKeyExtension(initialKey192, aes192));
+            Assert.IsTrue(TestKeyExtension(new byte[] { 254, 1, 23, 203, 255, 128, 7, 10,
+                104, 36, 98, 41, 13, 127, 21, 7,
+                8, 123, 22, 204, 65, 3, 10, 87 }, aes192));
+            Assert.IsTrue(TestKeyExtension(initialKey256, aes256));
+            Assert.IsTrue(TestKeyExtension(new byte[] { 254, 1, 23, 203, 255, 128, 7, 10,
+                104, 36, 98, 41, 13, 127, 21, 7,
+                8, 123, 22, 204, 65, 3, 10, 87,
+                12, 34, 205, 32, 197, 4, 22, 48}, aes256));
         }
     }
 }
