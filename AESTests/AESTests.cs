@@ -253,5 +253,67 @@ namespace AESTests
                 8, 123, 22, 204, 65, 3, 10, 87,
                 12, 34, 205, 32, 197, 4, 22, 48}, aes256));
         }
+
+        public void TestBlockEncryption(byte[] block, AESA aes)
+        {
+            var encrypted = aes.EncryptBlock(block);
+            var decrypted = aes.DecryptBlock(encrypted);
+
+            for (int i = 0; i < block.Length; ++i)
+            {
+                Assert.AreEqual(block[i], decrypted[i]);
+            }
+            for (int i = block.Length; i < blockLength; ++i)
+            {
+                Assert.AreEqual(0, decrypted[i]);
+            }
+            for (int i = 0; i < blockLength; ++i)
+            {
+                Assert.AreNotEqual(encrypted[i], decrypted[i]);
+            }
+        }
+
+        [TestMethod]
+        public void BlockEncryptionDecryption()
+        {
+            // aes 128
+            var aes = new AESA(100, aes128, new byte[] {
+                1, 200, 19, 176, 106, 8, 231, 203,
+                2, 9, 14, 153, 21, 16, 19, 1 });
+            TestBlockEncryption(new byte[] { }, aes);
+            TestBlockEncryption(new byte[] { 0 }, aes);
+            TestBlockEncryption(new byte[] { 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 0, 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 127, 63, 31, 15, 7, 3, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 32, 143, 2, 43, 67, 209, 4, 23, 19, 103, 31, 120, 235, 4, 3 }, aes);
+
+            // aes 192
+            aes = new AESA(267192, aes192, new byte[] {
+                91, 182, 191, 68, 10, 46, 152, 222,
+                1, 99, 123, 56, 5, 19, 172, 10,
+                16, 203, 16, 101, 20, 2, 1, 44 });
+            TestBlockEncryption(new byte[] { }, aes);
+            TestBlockEncryption(new byte[] { 0 }, aes);
+            TestBlockEncryption(new byte[] { 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 0, 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 127, 63, 31, 15, 7, 3, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 32, 143, 2, 43, 67, 209, 4, 23, 19, 103, 31, 120, 235, 4, 3 }, aes);
+
+            // aes 256
+            aes = new AESA(6378291, aes256, new byte[] {
+                91, 182, 191, 68, 10, 46, 152, 222,
+                1, 99, 123, 56, 5, 19, 172, 10,
+                16, 203, 16, 101, 20, 2, 1, 44,
+                12, 45, 66, 142, 231, 9, 53, 44});
+            TestBlockEncryption(new byte[] { }, aes);
+            TestBlockEncryption(new byte[] { 0 }, aes);
+            TestBlockEncryption(new byte[] { 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 0, 255 }, aes);
+            TestBlockEncryption(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 127, 63, 31, 15, 7, 3, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 32, 143, 2, 43, 67, 209, 4, 23, 19, 103, 31, 120, 235, 4, 3 }, aes);
+        }
     }
 }

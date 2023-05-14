@@ -242,7 +242,7 @@
                 {
                     for (int j = 0; j < rowColLength; ++j)
                     {
-                        result[i, j] = (byte)(lhs[i, j] + rhs[i, j]);
+                        result[i, j] = (byte)(lhs[i, j] ^ rhs[i, j]);
                     }
                 }
                 return result;
@@ -350,6 +350,41 @@
         public static State InverseMixColumns(State block)
         {
             return MixColumns(block, false);
+        }
+
+        public byte[] EncryptBlock(byte[] block)
+        {
+            var state = new State(block);
+            state += ExtendedKey[0];
+            for (int i = 1; i < ExtendedKey.Length - 1; ++i)
+            {
+                state = ForwardBytesSubstitution(state);
+                state = ForwardShiftRows(state);
+                state = ForwardMixColumns(state);
+                state += ExtendedKey[i];
+            }
+            state = ForwardBytesSubstitution(state);
+            state = ForwardShiftRows(state);
+            state += ExtendedKey[ExtendedKey.Length - 1];
+            return state.ToPlainBytes();
+        }
+
+
+        public byte[] DecryptBlock(byte[] block)
+        {
+            var state = new State(block);
+            state += ExtendedKey[ExtendedKey.Length - 1];
+            for (int i = ExtendedKey.Length - 2; i > 0; --i)
+            {
+                state = InverseShiftRows(state);
+                state = InverseBytesSubstitution(state);
+                state += ExtendedKey[i];
+                state = InverseMixColumns(state);
+            }
+            state = InverseShiftRows(state);
+            state = InverseBytesSubstitution(state);
+            state += ExtendedKey[0];
+            return state.ToPlainBytes();
         }
 
         // ------------------------------------------------------------------------------------------------------------
