@@ -20,10 +20,10 @@
     /// <summary>
     /// Available keys length for usage
     /// </summary>
-    public enum AvailableKeysLength : int
+    public static class AvailableKeysLength
     {
-        key128 = 128,
-        key192 = 192,
-        key256 = 256
+        public const int key128 = 128;
+        public const int key192 = 192;
+        public const int key256 = 256;
     }
 }
