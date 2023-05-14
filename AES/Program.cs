@@ -90,7 +90,7 @@ class Program
         };
 
         logger.Info("Creating object for crypt processing");
-        AES.AES aes = new(settings.SBoxSeed, parameters, key, chainMod);
+        AES.AES aes = new(settings.SBoxSeed, parameters, key, chainMod, settings.BatchSize);
 
         logger.Info("Start encryption, decryption process");
 

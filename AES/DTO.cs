@@ -7,6 +7,7 @@ namespace AES
         public int KeyLength { get; set; }
         public string Key { get; set; }
 
+        public uint BatchSize { get; set; }
         public int SBoxSeed { get; set; }
         public string BlockChainMode { get; set; }
         public AtomicOperation[] Operations { get; set; }

@@ -265,6 +265,8 @@
 
         private BlockChain BlockChain { get; set; }
 
+        private uint BatchSize { get; set; }
+
         /// <summary>
         /// Block length = 16 bytes as in documentation
         /// </summary>
@@ -316,13 +318,15 @@
         // Public
         // ------------------------------------------------------------------------------------------------------------
 
-        public AES(int seed, AESParameters parameters, byte[] key, BlockChain blockChain)
+        public AES(int seed, AESParameters parameters, byte[] key, BlockChain blockChain, uint batchSize)
         {
             ForwardSBox = new SubstitutionBox(seed);
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
+
             ExtendedKey = KeyExtension(parameters, key);
             BlockChain = blockChain;
+            BatchSize = batchSize;
         }
 
         public State ForwardBytesSubstitution(State block)
@@ -406,16 +410,32 @@
 
         private bool CryptProcessing(FileStream ifs, FileStream ofs, bool encrypt)
         {
-            var buffer = new byte[blockLength];
+            var buffer = new byte[blockLength * BatchSize];
             int length;
-            while ((length = ifs.Read(buffer, 0, blockLength)) > 0)
+            while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
             {
-                if (encrypt)
-                    buffer = EncryptBlock(buffer);
-                else
-                    buffer = DecryptBlock(buffer);
-                ofs.Write(buffer, 0, blockLength);
-                buffer = new byte[blockLength];
+                // Need to know if there is less data than the buffer can hold
+                int realBlocksIndex = 0;
+                for (; realBlocksIndex < BatchSize; ++realBlocksIndex)
+                {
+                    var block = new byte[blockLength];
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        block[j] = buffer[realBlocksIndex * blockLength + j];
+                    }
+                    if (encrypt)
+                        block = EncryptBlock(block);
+                    else
+                        block = DecryptBlock(block);
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        buffer[realBlocksIndex * blockLength + j] = block[j];
+                    }
+                    if ((realBlocksIndex + 1) * blockLength >= length)
+                        break;
+                }
+                ofs.Write(buffer, 0, (realBlocksIndex + 1) * blockLength);
+                buffer = new byte[blockLength * BatchSize];
             }
             return true;
         }

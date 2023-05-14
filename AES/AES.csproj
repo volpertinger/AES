@@ -16,4 +16,9 @@
     <Folder Include="Examples\Encrypted\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="bin\Debug\net6.0\SettingsFull.json" />
+    <None Include="bin\Debug\net6.0\Settings.json" />
+  </ItemGroup>
+
 </Project>
