@@ -413,14 +413,125 @@
             return BlockChainMethod switch
             {
                 BlockChainModes.ECB => CryptProcessingECB(ifs, ofs, encrypt),
-                BlockChainModes.CBC => CryptProcessingECB(ifs, ofs, encrypt),
-                BlockChainModes.OFB => CryptProcessingECB(ifs, ofs, encrypt),
-                BlockChainModes.CFB => CryptProcessingECB(ifs, ofs, encrypt),
+                BlockChainModes.CBC => CryptProcessingCBC(ifs, ofs, encrypt),
+                BlockChainModes.OFB => CryptProcessingOFB(ifs, ofs, encrypt),
+                BlockChainModes.CFB => CryptProcessingCFB(ifs, ofs, encrypt),
                 _ => throw new ArgumentException(),
             };
         }
 
         private bool CryptProcessingECB(FileStream ifs, FileStream ofs, bool encrypt)
+        {
+            var buffer = new byte[blockLength * BatchSize];
+            int length;
+            while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                // Need to know if there is less data than the buffer can hold
+                int realBlocksIndex = 0;
+                for (; realBlocksIndex < BatchSize; ++realBlocksIndex)
+                {
+                    var block = new byte[blockLength];
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        block[j] = buffer[realBlocksIndex * blockLength + j];
+                    }
+
+                    if (encrypt)
+                        block = EncryptBlock(block);
+                    else
+                        block = DecryptBlock(block);
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        buffer[realBlocksIndex * blockLength + j] = block[j];
+                    }
+                    if ((realBlocksIndex + 1) * blockLength >= length)
+                        break;
+                }
+                ofs.Write(buffer, 0, (realBlocksIndex + 1) * blockLength);
+                buffer = new byte[blockLength * BatchSize];
+            }
+            return true;
+        }
+
+        private bool CryptProcessingCBC(FileStream ifs, FileStream ofs, bool encrypt)
+        {
+            var buffer = new byte[blockLength * BatchSize];
+            int length;
+            var chain = new byte[blockLength];
+            while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                // Need to know if there is less data than the buffer can hold
+                int realBlocksIndex = 0;
+                for (; realBlocksIndex < BatchSize; ++realBlocksIndex)
+                {
+                    var block = new byte[blockLength];
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        block[j] = buffer[realBlocksIndex * blockLength + j];
+                    }
+                    if (encrypt)
+                    {
+                        block = Chain(block, chain);
+                        block = EncryptBlock(block);
+                        chain = block;
+                    }
+                    else
+                    {
+                        var tmp = block;
+                        block = DecryptBlock(block);
+                        block = Chain(block, chain);
+                        chain = tmp;
+                    }
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        buffer[realBlocksIndex * blockLength + j] = block[j];
+                    }
+                    if ((realBlocksIndex + 1) * blockLength >= length)
+                        break;
+                }
+                ofs.Write(buffer, 0, (realBlocksIndex + 1) * blockLength);
+                buffer = new byte[blockLength * BatchSize];
+            }
+            return true;
+        }
+
+        // TODO
+        private bool CryptProcessingOFB(FileStream ifs, FileStream ofs, bool encrypt)
+        {
+            var buffer = new byte[blockLength * BatchSize];
+            int length;
+            while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                // Need to know if there is less data than the buffer can hold
+                int realBlocksIndex = 0;
+                for (; realBlocksIndex < BatchSize; ++realBlocksIndex)
+                {
+                    var block = new byte[blockLength];
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        block[j] = buffer[realBlocksIndex * blockLength + j];
+                    }
+
+                    var encrypted = new byte[blockLength];
+                    if (encrypt)
+                        encrypted = EncryptBlock(block);
+                    else
+                        encrypted = DecryptBlock(block);
+                    for (int j = 0; j < blockLength; ++j)
+                    {
+                        buffer[realBlocksIndex * blockLength + j] = encrypted[j];
+                    }
+                    if ((realBlocksIndex + 1) * blockLength >= length)
+                        break;
+                }
+                ofs.Write(buffer, 0, (realBlocksIndex + 1) * blockLength);
+                buffer = new byte[blockLength * BatchSize];
+            }
+            return true;
+        }
+
+        // TODO
+        private bool CryptProcessingCFB(FileStream ifs, FileStream ofs, bool encrypt)
         {
             var buffer = new byte[blockLength * BatchSize];
             int length;
@@ -594,6 +705,15 @@
         private static uint RotateWord(uint arg)
         {
             return (arg << byteLength) | (arg >> (uintLength - byteLength));
+        }
+
+        private static byte[] Chain(byte[] lhs, byte[] rhs)
+        {
+            for (int i = 0; i < lhs.Length && i < rhs.Length; ++i)
+            {
+                lhs[i] ^= rhs[i];
+            }
+            return lhs;
         }
     }
 
