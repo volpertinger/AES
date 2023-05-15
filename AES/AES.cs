@@ -533,11 +533,11 @@
             return true;
         }
 
-        // TODO
         private bool CryptProcessingCFB(FileStream ifs, FileStream ofs, bool encrypt)
         {
             var buffer = new byte[blockLength * BatchSize];
             int length;
+            var chain = GetInitVector();
             while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
             {
                 // Need to know if there is less data than the buffer can hold
@@ -550,14 +550,22 @@
                         block[j] = buffer[realBlocksIndex * blockLength + j];
                     }
 
-                    var encrypted = new byte[blockLength];
                     if (encrypt)
-                        encrypted = EncryptBlock(block);
+                    {
+                        chain = EncryptBlock(chain);
+                        chain = Chain(block, chain);
+                        block = chain;
+                    }
                     else
-                        encrypted = DecryptBlock(block);
+                    {
+                        chain = EncryptBlock(chain);
+                        var tmp = block;
+                        block = Chain(chain, block);
+                        chain = tmp;
+                    }
                     for (int j = 0; j < blockLength; ++j)
                     {
-                        buffer[realBlocksIndex * blockLength + j] = encrypted[j];
+                        buffer[realBlocksIndex * blockLength + j] = block[j];
                     }
                     if ((realBlocksIndex + 1) * blockLength >= length)
                         break;
