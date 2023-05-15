@@ -268,6 +268,11 @@
         private uint BatchSize { get; set; }
 
         /// <summary>
+        /// Seed for box and initial vector generation
+        /// </summary>
+        private int Seed { get; set; }
+
+        /// <summary>
         /// Block length = 16 bytes as in documentation
         /// </summary>
         public static readonly int blockLength = 16;
@@ -320,7 +325,8 @@
 
         public AES(int seed, AESParameters parameters, byte[] key, string blockChain, uint batchSize)
         {
-            ForwardSBox = new SubstitutionBox(seed);
+            Seed = seed;
+            ForwardSBox = new SubstitutionBox(Seed);
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
 
@@ -414,7 +420,7 @@
             {
                 BlockChainModes.ECB => CryptProcessingECB(ifs, ofs, encrypt),
                 BlockChainModes.CBC => CryptProcessingCBC(ifs, ofs, encrypt),
-                BlockChainModes.OFB => CryptProcessingOFB(ifs, ofs, encrypt),
+                BlockChainModes.OFB => CryptProcessingOFB(ifs, ofs),
                 BlockChainModes.CFB => CryptProcessingCFB(ifs, ofs, encrypt),
                 _ => throw new ArgumentException(),
             };
@@ -457,7 +463,7 @@
         {
             var buffer = new byte[blockLength * BatchSize];
             int length;
-            var chain = new byte[blockLength];
+            var chain = GetInitVector();
             while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
             {
                 // Need to know if there is less data than the buffer can hold
@@ -495,11 +501,11 @@
             return true;
         }
 
-        // TODO
-        private bool CryptProcessingOFB(FileStream ifs, FileStream ofs, bool encrypt)
+        private bool CryptProcessingOFB(FileStream ifs, FileStream ofs)
         {
             var buffer = new byte[blockLength * BatchSize];
             int length;
+            var chain = GetInitVector();
             while ((length = ifs.Read(buffer, 0, buffer.Length)) > 0)
             {
                 // Need to know if there is less data than the buffer can hold
@@ -511,15 +517,12 @@
                     {
                         block[j] = buffer[realBlocksIndex * blockLength + j];
                     }
-
-                    var encrypted = new byte[blockLength];
-                    if (encrypt)
-                        encrypted = EncryptBlock(block);
-                    else
-                        encrypted = DecryptBlock(block);
+                    chain = EncryptBlock(chain);
+                    chain = EncryptBlock(chain);
+                    block = Chain(block, chain);
                     for (int j = 0; j < blockLength; ++j)
                     {
-                        buffer[realBlocksIndex * blockLength + j] = encrypted[j];
+                        buffer[realBlocksIndex * blockLength + j] = block[j];
                     }
                     if ((realBlocksIndex + 1) * blockLength >= length)
                         break;
@@ -678,6 +681,17 @@
             return BytesToUint(block);
         }
 
+        private byte[] GetInitVector()
+        {
+            var random = new Random(Seed);
+            var result = new byte[blockLength];
+            for (int i = 0; i < byteLength; ++i)
+            {
+                result[i] = (byte)random.Next();
+            }
+            return result;
+        }
+
         private static byte[] UintToBytes(uint arg)
         {
             var result = new byte[State.rowColLength];
@@ -715,6 +729,7 @@
             }
             return lhs;
         }
+
     }
 
     /// <summary>
