@@ -4,9 +4,9 @@
 
 ### Key [String] - 16 (128 bit) / 24 (192 bit) / 32 (256 bit) symbols string
 
-### KeyLength - length of the key used
+### KeyLength [Int] - length of the key used: 128 / 192 / 256 bits
 
-### BlockChainMode - encryption mode
+### BlockChainMode [String] - encryption mode
 
 #### Possible values
 
@@ -18,7 +18,7 @@
 
 * CFB - Cipher Feedback
 
-### BatchSize - Number of blocks to read, write to a file during one iteration of encryption or decryption
+### BatchSize [Int] - Number of blocks to read, write to a file during one iteration of encryption or decryption
 
 ### Operations [array[Operation]] - array of encryption and decryption operations
 
