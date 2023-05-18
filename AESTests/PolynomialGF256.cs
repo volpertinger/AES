@@ -308,6 +308,27 @@ namespace AESTests
             Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01011001),
                 new Polynomial(0b00000000_00000000_00000000_10101010) *
                 new Polynomial(0b00000000_00000000_00000000_01010101));
+
+            // speed test
+            var iterations = 1000;
+            for (int i = 0; i < iterations; ++i)
+            {
+                Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_10011010),
+                new Polynomial(0b00000000_00000000_00000000_10000000) *
+                new Polynomial(0b00000000_00000000_00000000_10000000));
+
+                Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_00010011),
+                    new Polynomial(0b00000000_00000000_00000000_11111111) *
+                    new Polynomial(0b00000000_00000000_00000000_11111111));
+
+                Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01000110),
+                    new Polynomial(0b00000000_00000000_00000000_10000000) *
+                    new Polynomial(0b00000000_00000000_00000000_10101010));
+
+                Assert.AreEqual(new Polynomial(0b00000000_00000000_00000000_01011001),
+                    new Polynomial(0b00000000_00000000_00000000_10101010) *
+                    new Polynomial(0b00000000_00000000_00000000_01010101));
+            }
         }
 
         [TestMethod]

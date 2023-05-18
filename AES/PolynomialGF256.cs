@@ -77,14 +77,12 @@
 
         public static PolynomialGF256 operator <<(PolynomialGF256 arg, int shift)
         {
-            arg.Coefficients <<= shift;
-            return arg;
+            return new PolynomialGF256(arg.Coefficients << shift);
         }
 
         public static PolynomialGF256 operator >>(PolynomialGF256 arg, int shift)
         {
-            arg.Coefficients >>= shift;
-            return arg;
+            return new PolynomialGF256(arg.Coefficients >> shift);
         }
 
         public static bool operator >(PolynomialGF256 lhs, PolynomialGF256 rhs)
@@ -150,7 +148,6 @@
                 }
                 lhs += sub;
             }
-            if (lhs > border)
                 lhs = ToMod(lhs);
             return lhs;
         }
@@ -158,16 +155,16 @@
         public static PolynomialGF256 operator *(PolynomialGF256 lhs, PolynomialGF256 rhs)
         {
             var result = Zero;
-            for (var i = 0; i < uintMaxLength; ++i)
+            while (!rhs.IsZero())
             {
-                for (var j = 0; j < uintMaxLength; ++j)
+                if ((rhs.Coefficients & 1) != 0)
                 {
-                    result.Coefficients ^= lhs[i] * rhs[j];
+                    result += lhs;
                 }
+                lhs <<= 1;
+                rhs >>= 1;
             }
-            if (result > border)
-                result = ToMod(result);
-            return result;
+            return ToMod(result);
         }
 
         // ------------------------------------------------------------------------------------------------------------
@@ -265,7 +262,9 @@
 
         private static PolynomialGF256 ToMod(PolynomialGF256 arg)
         {
-            return arg %= mod;
+            if (arg > border)
+                return arg %= mod;
+            return arg;
         }
 
         private bool IsZero()
