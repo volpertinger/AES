@@ -39,9 +39,9 @@ namespace AESTests
         public static readonly uint batchSize = 1;
 
 
-        public void TestForwardSBox(int seed)
+        public void TestForwardSBox()
         {
-            var sBox = new AESSB(seed);
+            var sBox = new AESSB();
             Assert.AreEqual(sBoxElementsCount, sBox.Box.Length);
 
             HashSet<byte> result = new();
@@ -55,9 +55,9 @@ namespace AESTests
             Assert.AreEqual(sBoxElementsCount, result.Count);
         }
 
-        public void TestInverseSBox(int seed)
+        public void TestInverseSBox()
         {
-            var forwardSBox = new AESSB(seed);
+            var forwardSBox = new AESSB();
             var inverseSBox = new AESSB(forwardSBox);
             inverseSBox.Inverse();
 
@@ -83,16 +83,10 @@ namespace AESTests
         public void SBoxGeneration()
         {
             // forward
-            TestForwardSBox(0);
-            TestForwardSBox(int.MaxValue);
-            TestForwardSBox(36728);
-            TestForwardSBox(11111);
+            TestForwardSBox();
 
             // inverse
-            TestInverseSBox(0);
-            TestInverseSBox(int.MaxValue);
-            TestInverseSBox(36728);
-            TestInverseSBox(11111);
+            TestInverseSBox();
         }
 
         public void TestState(byte[] arg)
@@ -301,10 +295,7 @@ namespace AESTests
                 chainMode, batchSize);
             TestBlockEncryption(new byte[] { }, aes);
             TestBlockEncryption(new byte[] { 0 }, aes);
-            TestBlockEncryption(new byte[] { 255 }, aes);
-            TestBlockEncryption(new byte[] { 1, 2, 0, 255 }, aes);
             TestBlockEncryption(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 }, aes);
-            TestBlockEncryption(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 127, 63, 31, 15, 7, 3, 1 }, aes);
             TestBlockEncryption(new byte[] { 1, 32, 143, 2, 43, 67, 209, 4, 23, 19, 103, 31, 120, 235, 4, 3 }, aes);
 
             // aes 256

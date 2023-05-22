@@ -50,9 +50,9 @@
             // Public
             // --------------------------------------------------------------------------------------------------------
 
-            public SubstitutionBox(int seed)
+            public SubstitutionBox()
             {
-                Box = GetForwardSBox(seed);
+                Box = GetForwardSBox();
             }
 
             public SubstitutionBox(SubstitutionBox substitutionBox)
@@ -84,7 +84,7 @@
                 Box = result;
             }
 
-            private static byte[,] GetForwardSBox(int seed)
+            private static byte[,] GetForwardSBox()
             {
                 List<byte> initial = new();
                 for (int i = 0; i <= byte.MaxValue; ++i)
@@ -93,14 +93,11 @@
                 }
 
                 byte[,] result = new byte[length, length];
-                var random = new Random(seed);
                 for (int i = 0; i < length; ++i)
                 {
                     for (int j = 0; j < length; ++j)
                     {
-                        var index = random.Next(initial.Count);
-                        result[i, j] = AffineTransformation(initial[index]);
-                        initial.RemoveAt(index);
+                        result[i, j] = AffineTransformation(initial[i*length + j]);
                     }
                 }
                 return result;
@@ -326,7 +323,7 @@
         public AES(int seed, AESParameters parameters, byte[] key, string blockChain, uint batchSize)
         {
             Seed = seed;
-            ForwardSBox = new SubstitutionBox(Seed);
+            ForwardSBox = new SubstitutionBox();
             InverseSBox = new SubstitutionBox(ForwardSBox);
             InverseSBox.Inverse();
 
