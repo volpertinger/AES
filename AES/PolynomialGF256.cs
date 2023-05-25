@@ -1,4 +1,6 @@
-﻿namespace AES
+﻿using static AES.AES;
+
+namespace AES
 {
     /// <summary>
     /// Allows you to perform the necessary operations on a finite Galois field 
@@ -148,7 +150,7 @@
                 }
                 lhs += sub;
             }
-                lhs = ToMod(lhs);
+            lhs = ToMod(lhs);
             return lhs;
         }
 
@@ -254,6 +256,31 @@
             if (!gcd.IsOne())
                 return Zero;
             return leftCoefficient;
+        }
+
+        /// <summary>
+        /// perform the multiplication of the polynomial with coefficients from the GF 
+        /// and reduce modulo the polynomial x^n - 1 where n is arguments length
+        /// </summary>
+        public static PolynomialGF256[] MatrixShiftMultiple(PolynomialGF256[,] matrix, PolynomialGF256[] arg)
+        {
+            var length = arg.Length;
+            var result = new PolynomialGF256[length];
+            for (int i = 0; i < State.rowColLength; ++i)
+            {
+                result[i] = Zero;
+                for (int j = 0; j < State.rowColLength; ++j)
+                {
+                    result[i] += matrix[i, j] * arg[j];
+                }
+            }
+            return result;
+        }
+
+        public static PolynomialGF256[] MatrixShiftMultiple(PolynomialGF256[] lhs, PolynomialGF256[] rhs)
+        {
+            var matrix = AES.GenerateShiftMatrix(lhs);
+            return MatrixShiftMultiple(matrix, rhs);
         }
 
         // ------------------------------------------------------------------------------------------------------------

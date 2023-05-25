@@ -224,7 +224,7 @@ namespace AESTests
             TestMixColumns(new byte[] { 1, 255 });
             TestMixColumns(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
             TestMixColumns(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 });
-            TestMixColumns(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 63, 31, 15, 7, 3, 1 });
+            TestMixColumns(new byte[] { 1, 3, 7, 15, 31, 67, 127, 255, 255, 63, 31, 15, 7, 3, 1 });
             TestMixColumns(new byte[] { 1, 45, 33, 10, 95, 201, 172 });
             TestMixColumns(new byte[] { 10, 43, 61, 109, 222, 204, 4, 129, 32, 157, 211, 20, 3, 45, 143, 32 });
         }

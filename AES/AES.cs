@@ -400,6 +400,20 @@
             return CryptProcessing(ifs, ofs, false);
         }
 
+        public static PolynomialGF256[,] GenerateShiftMatrix(PolynomialGF256[] arg)
+        {
+            var length = arg.Length;
+            var result = new PolynomialGF256[length, length];
+            for (int i = 0; i < length; ++i)
+            {
+                for (int j = 0; j < length; ++j)
+                {
+                    result[i, j] = arg[(j - i + length) % length];
+                }
+            }
+            return result;
+        }
+
         // ------------------------------------------------------------------------------------------------------------
         // Private
         // ------------------------------------------------------------------------------------------------------------
@@ -604,14 +618,12 @@
 
             for (int i = 0; i < State.rowColLength; ++i)
             {
+                var polynomial =  Enumerable.Range(0, polynomialBlock.GetLength(0))
+                    .Select(x => polynomialBlock[i, x]).ToArray();
+                var res = PolynomialGF256.MatrixShiftMultiple(mixMatrix, polynomial);
                 for (int j = 0; j < State.rowColLength; ++j)
                 {
-                    var accumulator = new PolynomialGF256();
-                    for (int k = 0; k < State.rowColLength; ++k)
-                    {
-                        accumulator += mixMatrix[i, k] * polynomialBlock[k, j];
-                    }
-                    result[i, j] = accumulator;
+                    result[i, j] = res[j];
                 }
             }
             return State.FromPolynomial(result);
@@ -726,20 +738,6 @@
                 lhs[i] ^= rhs[i];
             }
             return lhs;
-        }
-
-        private static PolynomialGF256[,] GenerateShiftMatrix(PolynomialGF256[] arg)
-        {
-            var length = arg.Length;
-            var result = new PolynomialGF256[length, length];
-            for (int i = 0; i < length; ++i)
-            {
-                for (int j = 0; j < length; ++j)
-                {
-                    result[i, j] = arg[(j - i + length) % length];
-                }
-            }
-            return result;
         }
 
     }
