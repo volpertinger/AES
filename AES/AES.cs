@@ -97,7 +97,7 @@
                 {
                     for (int j = 0; j < length; ++j)
                     {
-                        result[i, j] = AffineTransformation(initial[i*length + j]);
+                        result[i, j] = AffineTransformation(initial[i * length + j]);
                     }
                 }
                 return result;
@@ -294,12 +294,9 @@
         /// |1  |1  |x  |x+1|
         /// |x+1|1  |1  |x  |
         /// </summary>
-        private static readonly PolynomialGF256[,] forwardMixColumnsMatrix = new PolynomialGF256[,] {
-            { new(2), new(3), new(1), new(1)},
-            { new(1), new(2), new(3), new(1)},
-            { new(1), new(1), new(2), new(3)},
-            { new(3), new(1), new(1), new(2)}
-        };
+        private static readonly PolynomialGF256[,] forwardMixColumnsMatrix = GenerateShiftMatrix(
+            new PolynomialGF256[] { new(2), new(3), new(1), new(1) }
+            );
 
         /// <summary>
         /// Matrix for inverse mix columns as in documentation
@@ -308,12 +305,9 @@
         /// |x^3 + x^2 + 1  |x^3 + 1        |x^3 + x^2 + x^1|x^3 + x + 1    |
         /// |x^3 + x + 1    |x^3 + x^2 + 1  |x^3 + 1        |x^3 + x^2 + x^1|
         /// </summary>
-        private static readonly PolynomialGF256[,] inverseMixColumnsMatrix = new PolynomialGF256[,] {
-            { new(14), new(11), new(13), new(9)},
-            { new(9), new(14), new(11), new(13)},
-            { new(13), new(9), new(14), new(11)},
-            { new(11), new(13), new(9), new(14)},
-        };
+        private static readonly PolynomialGF256[,] inverseMixColumnsMatrix = GenerateShiftMatrix(
+            new PolynomialGF256[] { new(14), new(11), new(13), new(9) }
+            );
 
 
         // ------------------------------------------------------------------------------------------------------------
@@ -378,7 +372,6 @@
             state += ExtendedKey[ExtendedKey.Length - 1];
             return state.ToPlainBytes();
         }
-
 
         public byte[] DecryptBlock(byte[] block)
         {
@@ -733,6 +726,20 @@
                 lhs[i] ^= rhs[i];
             }
             return lhs;
+        }
+
+        private static PolynomialGF256[,] GenerateShiftMatrix(PolynomialGF256[] arg)
+        {
+            var length = arg.Length;
+            var result = new PolynomialGF256[length, length];
+            for (int i = 0; i < length; ++i)
+            {
+                for (int j = 0; j < length; ++j)
+                {
+                    result[i, j] = arg[(j - i + length) % length];
+                }
+            }
+            return result;
         }
 
     }
