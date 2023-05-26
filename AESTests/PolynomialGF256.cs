@@ -451,5 +451,30 @@ namespace AESTests
             TestReverse(0b00000000_00000000_00000000_00010010, 0b00000000_00000000_00000000_10101010);
             TestReverse(0b00000000_00000000_00000000_01011011, 0b00000000_00000000_00000000_11110000);
         }
+
+        public void TestMatrixShiftMultiple(uint[] lhs, uint[] rhs, uint[] result)
+        {
+            Polynomial[] lhsPolynomial = lhs.Select(item => new Polynomial(item)).ToArray();
+            Polynomial[] rhsPolynomial = rhs.Select(item => new Polynomial(item)).ToArray();
+            Polynomial[] resultPolynomial = result.Select(item => new Polynomial(item)).ToArray();
+            Polynomial[] multiplicationResult = Polynomial.MatrixShiftMultiple(lhsPolynomial, rhsPolynomial);
+
+            Assert.AreEqual(resultPolynomial.Length, multiplicationResult.Length);
+            for (int i = 0; i < resultPolynomial.Length; ++i)
+            {
+                Assert.AreEqual(resultPolynomial[i], multiplicationResult[i]);
+            }
+        }
+
+        [TestMethod]
+        public void MatrixShiftMultiple()
+        {
+            TestMatrixShiftMultiple(new uint[] { }, new uint[] { }, new uint[] { });
+            TestMatrixShiftMultiple(new uint[] { 0 }, new uint[] { 0 }, new uint[] { 0 });
+            TestMatrixShiftMultiple(new uint[] { 2 }, new uint[] { 4 }, new uint[] { 8 });
+            TestMatrixShiftMultiple(new uint[] { 1, 4 }, new uint[] { 2, 8 }, new uint[] { 34, 0 });
+            TestMatrixShiftMultiple(new uint[] { 1, 2, 3 }, new uint[] { 4, 5, 6 }, new uint[] { 4, 5, 1 });
+            TestMatrixShiftMultiple(new uint[] { 6, 8, 3, 1 }, new uint[] { 4, 6, 5, 5 }, new uint[] { 34, 55, 60, 49 });
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using static AES.AES;
-
-namespace AES
+﻿namespace AES
 {
     /// <summary>
     /// Allows you to perform the necessary operations on a finite Galois field 
@@ -259,17 +257,19 @@ namespace AES
         }
 
         /// <summary>
-        /// perform the multiplication of the polynomial with coefficients from the GF 
+        /// Perform the multiplication of the polynomial with coefficients from the GF 
         /// and reduce modulo the polynomial x^n - 1 where n is arguments length
         /// </summary>
         public static PolynomialGF256[] MatrixShiftMultiple(PolynomialGF256[,] matrix, PolynomialGF256[] arg)
         {
+            if (matrix.GetLength(0) != arg.Length)
+                throw new ArgumentException();
             var length = arg.Length;
             var result = new PolynomialGF256[length];
-            for (int i = 0; i < State.rowColLength; ++i)
+            for (int i = 0; i < length; ++i)
             {
                 result[i] = Zero;
-                for (int j = 0; j < State.rowColLength; ++j)
+                for (int j = 0; j < length; ++j)
                 {
                     result[i] += matrix[i, j] * arg[j];
                 }
@@ -277,8 +277,15 @@ namespace AES
             return result;
         }
 
+        /// <summary>
+        /// Perform the multiplication of the polynomial with coefficients from the GF 
+        /// and reduce modulo the polynomial x^n - 1 where n is arguments length.
+        /// Generates matrix from lhs.
+        /// </summary>
         public static PolynomialGF256[] MatrixShiftMultiple(PolynomialGF256[] lhs, PolynomialGF256[] rhs)
         {
+            if (lhs.Length != rhs.Length)
+                throw new ArgumentException();
             var matrix = AES.GenerateShiftMatrix(lhs);
             return MatrixShiftMultiple(matrix, rhs);
         }
