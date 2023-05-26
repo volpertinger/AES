@@ -283,7 +283,7 @@ namespace AESTests
             TestBlockEncryption(new byte[] { 0 }, aes);
             TestBlockEncryption(new byte[] { 255 }, aes);
             TestBlockEncryption(new byte[] { 1, 2, 0, 255 }, aes);
-            TestBlockEncryption(new byte[] { 1, 2, 4, 8, 16, 32, 64, 128, 128, 64, 32, 16, 8, 4, 2, 1 }, aes);
+            TestBlockEncryption(new byte[] { 1, 92, 4, 8, 186, 32, 64, 128, 128, 64, 32, 116, 8, 4, 2, 1 }, aes);
             TestBlockEncryption(new byte[] { 1, 3, 7, 15, 31, 63, 127, 255, 255, 127, 63, 31, 15, 7, 3, 1 }, aes);
             TestBlockEncryption(new byte[] { 1, 32, 143, 2, 43, 67, 209, 4, 23, 19, 103, 31, 120, 235, 4, 3 }, aes);
 

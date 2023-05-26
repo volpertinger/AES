@@ -46,6 +46,16 @@
             /// </summary>
             private static readonly PolynomialGF256 affineAddendum = new(0b01100011);
 
+            /// <summary>
+            /// Initial element for SBox generation as in documentation
+            /// </summary>
+            private static readonly byte SBoxInitial = 0xf1;
+
+            /// <summary>
+            /// Element for shift in SBox generation as in documentation
+            /// </summary>
+            private static readonly byte SBoxZeroShift = 0x63;
+
             // --------------------------------------------------------------------------------------------------------
             // Public
             // --------------------------------------------------------------------------------------------------------
@@ -86,18 +96,12 @@
 
             private static byte[,] GetForwardSBox()
             {
-                List<byte> initial = new();
-                for (int i = 0; i <= byte.MaxValue; ++i)
-                {
-                    initial.Add((byte)i);
-                }
-
                 byte[,] result = new byte[length, length];
                 for (int i = 0; i < length; ++i)
                 {
                     for (int j = 0; j < length; ++j)
                     {
-                        result[i, j] = AffineTransformation(initial[i * length + j]);
+                        result[i, j] = AffineTransformation((byte)(i * length + j));
                     }
                 }
                 return result;
@@ -120,8 +124,24 @@
 
             private static byte AffineTransformation(byte arg)
             {
-                PolynomialGF256 polynomial = new(arg);
-                return (byte)(polynomial.GetReverse() * affineMultiplier + affineAddendum).Coefficients;
+                var reverse = new PolynomialGF256(arg).GetReverse().Coefficients;
+                byte generatingByte = SBoxInitial;
+                byte result = 0;
+
+                for (int j = 0; j < byteLength; ++j)
+                {
+                    byte xorBits = 0;
+                    var xorBitsInitial = reverse & generatingByte;
+                    for (int i = 0; i < byteLength; ++i)
+                    {
+                        xorBits ^= (byte)((xorBitsInitial >> i) & 1);
+                    }
+                    result |= (byte)(xorBits << j);
+                    generatingByte = (byte)((generatingByte << 1) | (generatingByte >> (byteLength - 1))); ;
+                }
+
+                result ^= SBoxZeroShift;
+                return result;
             }
         }
 
@@ -618,7 +638,7 @@
 
             for (int i = 0; i < State.rowColLength; ++i)
             {
-                var polynomial =  Enumerable.Range(0, polynomialBlock.GetLength(0))
+                var polynomial = Enumerable.Range(0, polynomialBlock.GetLength(0))
                     .Select(x => polynomialBlock[i, x]).ToArray();
                 var res = PolynomialGF256.MatrixShiftMultiple(mixMatrix, polynomial);
                 for (int j = 0; j < State.rowColLength; ++j)
@@ -695,7 +715,7 @@
         {
             var random = new Random(Seed);
             var result = new byte[blockLength];
-            for (int i = 0; i < byteLength; ++i)
+            for (int i = 0; i < blockLength; ++i)
             {
                 result[i] = (byte)random.Next();
             }
